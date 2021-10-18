@@ -1,0 +1,305 @@
+{
+    "cells": [
+        {
+            "language": "markdown",
+            "source": [
+                "# HTTP and Being a Web Server"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## A Web Server"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "// Creating a web server\n\nvar http = require('http');\n\nhttp.createServer(function(req, res) {\n\n    res.writeHead(200, { 'Content-Type': 'text/plain'  })\n    res.end('Hello world\\n');\n\n}).listen(1337, '127.0.0.1');"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Outputting HTML and Templates"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var http = require('http');\nvar fs = require('fs');\n\nhttp.createServer(function(req, res) {\n\n  res.writeHead(200, { 'Content-Type': 'text/html'})\n  var html = fs.readFileSync(__dirname + '/index.html');\n  res.end(html);\n\n}).listen(1337, '127.0.0.1');"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var http = require('http');\nvar fs = require('fs');\n\nhttp.createServer(function(req, res) {\n\n  res.writeHead(200, { 'Content-Type': 'text/html'})\n  var html = fs.readFileSync(__dirname + '/index2.html', 'utf8');\n  var message = \"Hello world!!!111\";\n  html = html.replace('{message}', message)\n  res.end(html);\n\n}).listen(1337, '127.0.0.1');"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Streams and Performance"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var http = require('http');\nvar fs = require('fs');\n\nhttp.createServer(function(req, res) {\n\n  res.writeHead(200, { 'Content-Type': 'text/html'})\n  fs.createReadStream(__dirname + '/index.html').pipe(res);\n\n}).listen(1337, '127.0.0.1');"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Outputting JSON"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var http = require('http');\nvar fs = require('fs');\n\nhttp.createServer(function(req, res) {\n\n  res.writeHead(200, { 'Content-Type': 'application/json'})\n  var obj = {\n    firstname: 'John',\n    lastname: 'Doe'\n  };\n  res.end(JSON.stringify(obj));\n\n}).listen(1337, '127.0.0.1');\n"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Routing"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var http = require('http');\nvar fs = require('fs');\n\nhttp.createServer(function(req, res) {\n  if (req.url === '/') {\n    fs.createReadStream(__dirname + '/index.html').pipe(res);\n  }\n\n  if(req.url === '/api') {\n    res.writeHead(200, { 'Content-Type': 'application/json'})\n    var obj = {\n      firstname: 'John',\n      lastname: 'Doe'\n    };\n    res.end(JSON.stringify(obj));\n  }\n\n}).listen(1337, '127.0.0.1');"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "# Express"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Making it easier to Build a Web Server"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var express = require('express');\nvar app = express();\n\nvar port = process.env.PORT || 3000;\n\napp.get('/', function(req, res) {\n  res.send('<html><head></head><body><h1>Hello world!</h1></body></html>');\n});\n\napp.get('/api', function(req, res){\n  res.json({firstname: 'ßJohn', lastname: 'Doe'});\n});\n\napp.listen(3000);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Routes"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var express = require('express');\nvar app = express();\n\nvar port = process.env.PORT || 3000;\n\napp.get('/', function(req, res) {\n  res.send('<html><head></head><body><h1>Hello world!</h1></body></html>');\n});\n\napp.get('/person/:id', function(req, res) {\n  res.send('<html><head></head><body><h1>Person: ' +\n  req.params.id+ '</h1></body></html>');\n});\n\napp.get('/api', function(req, res){\n  res.json({firstname: 'ßJohn', lastname: 'Doe'});\n});\n\napp.listen(3000);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Static Files and Middleware"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var express = require('express');\nvar app = express();\n\nvar port = process.env.PORT || 3000;\n\napp.use('/assets', express.static(__dirname + '/public'));\n\napp.use('/', function(req, res, next){\n  console.log('Request Url: ' + req.url);\n  next(); \n});\n\napp.get('/', function(req, res) {\n  res.send('<html><head><link href=assets/style.css type=text/css rel=stylesheet /></head><body><h1>Hello world!</h1></body></html>');\n});\n\napp.get('/person/:id', function(req, res) {\n  res.send('<html><head></head><body><h1>Person: ' +\n  req.params.id+ '</h1></body></html>');\n});\n\napp.get('/api', function(req, res){\n  res.json({firstname: 'ßJohn', lastname: 'Doe'});\n});\n\napp.listen(3000);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Templates and Template Engines"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var express = require('express');\nvar app = express();\n\nvar port = process.env.PORT || 3000;\n\napp.use('/assets', express.static(__dirname + '/public'));\n\napp.set('view engine', 'ejs');\n\napp.use('/', function(req, res, next){\n  console.log('Request Url: ' + req.url);\n  next(); \n});\n\napp.get('/', function(req, res) {\n  res.render('index');\n});\n\napp.get('/person/:id', function(req, res) {\n  res.render('person', { ID: req.params.id});\n});\n\napp.get('/api', function(req, res){\n  res.json({firstname: 'ßJohn', lastname: 'Doe'});\n});\n\napp.listen(3000);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Querystring and Post Parameters"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "var express = require('express');\nvar bodyParser = require('body-parser');\nvar app = express();\n\nvar port = process.env.PORT || 3000;\n\nvar urlencodedParser = bodyParser.urlencoded({ extended: false });\n\napp.use('/assets', express.static(__dirname + '/public'));\n\napp.set('view engine', 'ejs');\n\napp.use('/', function(req, res, next){\n  console.log('Request Url: ' + req.url);\n  next(); \n});\n\napp.get('/', function(req, res) {\n  res.render('index');\n});\n\napp.get('/person/:id', function(req, res) {\n  res.render('person', { ID: req.params.id, Qstr: req.query.qstr });\n});\n\napp.post('/person', urlencodedParser, function(req, res) {\n  res.send('Thank you!');\n  console.log(req.body.firstname);\n  console.log(req.body.lastname);\n\n});\napp.get('/api', function(req, res){\n  res.json({firstname: 'John', lastname: 'Doe'});\n});\n\napp.listen(3000);"
+            ],
+            "outputs": [
+                {
+                    "items": [
+                        {
+                            "mime": "text/plain",
+                            "value": [
+                                "\u001b[36m<ref *1>\u001b[39m Server {",
+                                "  maxHeaderSize: \u001b[90mundefined\u001b[39m,",
+                                "  insecureHTTPParser: \u001b[90mundefined\u001b[39m,",
+                                "  _events: [Object: null prototype] {",
+                                "    request: [Function: app] {",
+                                "      _events: \u001b[36m[Object: null prototype]\u001b[39m,",
+                                "      _eventsCount: \u001b[33m1\u001b[39m,",
+                                "      _maxListeners: \u001b[90mundefined\u001b[39m,",
+                                "      setMaxListeners: \u001b[36m[Function: setMaxListeners]\u001b[39m,",
+                                "      getMaxListeners: \u001b[36m[Function: getMaxListeners]\u001b[39m,",
+                                "      emit: \u001b[36m[Function: emit]\u001b[39m,",
+                                "      addListener: \u001b[36m[Function: addListener]\u001b[39m,",
+                                "      on: \u001b[36m[Function: addListener]\u001b[39m,",
+                                "      prependListener: \u001b[36m[Function: prependListener]\u001b[39m,",
+                                "      once: \u001b[36m[Function: once]\u001b[39m,",
+                                "      prependOnceListener: \u001b[36m[Function: prependOnceListener]\u001b[39m,",
+                                "      removeListener: \u001b[36m[Function: removeListener]\u001b[39m,",
+                                "      off: \u001b[36m[Function: removeListener]\u001b[39m,",
+                                "      removeAllListeners: \u001b[36m[Function: removeAllListeners]\u001b[39m,",
+                                "      listeners: \u001b[36m[Function: listeners]\u001b[39m,",
+                                "      rawListeners: \u001b[36m[Function: rawListeners]\u001b[39m,",
+                                "      listenerCount: \u001b[36m[Function: listenerCount]\u001b[39m,",
+                                "      eventNames: \u001b[36m[Function: eventNames]\u001b[39m,",
+                                "      init: \u001b[36m[Function: init]\u001b[39m,",
+                                "      defaultConfiguration: \u001b[36m[Function: defaultConfiguration]\u001b[39m,",
+                                "      lazyrouter: \u001b[36m[Function: lazyrouter]\u001b[39m,",
+                                "      handle: \u001b[36m[Function: handle]\u001b[39m,",
+                                "      use: \u001b[36m[Function: use]\u001b[39m,",
+                                "      route: \u001b[36m[Function: route]\u001b[39m,",
+                                "      engine: \u001b[36m[Function: engine]\u001b[39m,",
+                                "      param: \u001b[36m[Function: param]\u001b[39m,",
+                                "      set: \u001b[36m[Function: set]\u001b[39m,",
+                                "      path: \u001b[36m[Function: path]\u001b[39m,",
+                                "      enabled: \u001b[36m[Function: enabled]\u001b[39m,",
+                                "      disabled: \u001b[36m[Function: disabled]\u001b[39m,",
+                                "      enable: \u001b[36m[Function: enable]\u001b[39m,",
+                                "      disable: \u001b[36m[Function: disable]\u001b[39m,",
+                                "      acl: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      bind: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      checkout: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      connect: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      copy: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      delete: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      get: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      head: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      link: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      lock: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      \u001b[32m'm-search'\u001b[39m: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      merge: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      mkactivity: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      mkcalendar: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      mkcol: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      move: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      notify: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      options: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      patch: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      post: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      pri: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      propfind: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      proppatch: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      purge: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      put: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      rebind: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      report: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      search: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      source: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      subscribe: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      trace: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      unbind: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      unlink: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      unlock: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      unsubscribe: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      all: \u001b[36m[Function: all]\u001b[39m,",
+                                "      del: \u001b[36m[Function (anonymous)]\u001b[39m,",
+                                "      render: \u001b[36m[Function: render]\u001b[39m,",
+                                "      listen: \u001b[36m[Function: listen]\u001b[39m,",
+                                "      request: \u001b[36m[IncomingMessage]\u001b[39m,",
+                                "      response: \u001b[36m[ServerResponse]\u001b[39m,",
+                                "      cache: {},",
+                                "      engines: {},",
+                                "      settings: \u001b[36m[Object]\u001b[39m,",
+                                "      locals: \u001b[36m[Object: null prototype]\u001b[39m,",
+                                "      mountpath: \u001b[32m'/'\u001b[39m,",
+                                "      _router: \u001b[36m[Function]\u001b[39m",
+                                "    },",
+                                "    connection: \u001b[36m[Function: connectionListener]\u001b[39m",
+                                "  },",
+                                "  _eventsCount: \u001b[33m2\u001b[39m,",
+                                "  _maxListeners: \u001b[90mundefined\u001b[39m,",
+                                "  _connections: \u001b[33m0\u001b[39m,",
+                                "  _handle: TCP {",
+                                "    reading: \u001b[33mfalse\u001b[39m,",
+                                "    onconnection: \u001b[36m[Function: onconnection]\u001b[39m,",
+                                "    [\u001b[32mSymbol(owner_symbol)\u001b[39m]: \u001b[36m[Circular *1]\u001b[39m",
+                                "  },",
+                                "  _usingWorkers: \u001b[33mfalse\u001b[39m,",
+                                "  _workers: [],",
+                                "  _unref: \u001b[33mfalse\u001b[39m,",
+                                "  allowHalfOpen: \u001b[33mtrue\u001b[39m,",
+                                "  pauseOnConnect: \u001b[33mfalse\u001b[39m,",
+                                "  httpAllowHalfOpen: \u001b[33mfalse\u001b[39m,",
+                                "  timeout: \u001b[33m0\u001b[39m,",
+                                "  keepAliveTimeout: \u001b[33m5000\u001b[39m,",
+                                "  maxHeadersCount: \u001b[1mnull\u001b[22m,",
+                                "  headersTimeout: \u001b[33m60000\u001b[39m,",
+                                "  requestTimeout: \u001b[33m0\u001b[39m,",
+                                "  _connectionKey: \u001b[32m'6::::3000'\u001b[39m,",
+                                "  [\u001b[32mSymbol(IncomingMessage)\u001b[39m]: \u001b[36m[Function: IncomingMessage]\u001b[39m,",
+                                "  [\u001b[32mSymbol(ServerResponse)\u001b[39m]: \u001b[36m[Function: ServerResponse]\u001b[39m,",
+                                "  [\u001b[32mSymbol(kCapture)\u001b[39m]: \u001b[33mfalse\u001b[39m,",
+                                "  [\u001b[32mSymbol(async_id_symbol)\u001b[39m]: \u001b[33m39\u001b[39m",
+                                "}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "items": [
+                        {
+                            "mime": "application/vnd.code.notebook.stdout",
+                            "value": [
+                                "Request Url: /",
+                                "Request Url: /person",
+                                "hublar",
+                                "Request Url: /",
+                                "first",
+                                "last",
+                                "Request Url: /",
+                                "nuts",
+                                ""
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
